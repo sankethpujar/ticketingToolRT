@@ -1,0 +1,26 @@
+import ts from 'typescript';import fs from 'node:fs';import assert from 'node:assert/strict';
+let row=null,identity={userId:'owner',email:'owner@example.com',displayName:'Owner'};
+const db={prepare(sql){let values=[];return {bind(...v){values=v;return this},async run(){if(sql.startsWith('INSERT')){row??={version:0,data:values[0]};return {}}if(sql.startsWith('UPDATE')){if(row.version!==values[1])return {meta:{changes:0}};row={version:row.version+1,data:values[0]};return {meta:{changes:1}}}},async first(){return row}}}};
+let source=fs.readFileSync('app/api/desk/route.ts','utf8').replace(/import .*?;\n/g,'');let js=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+// Bind before evaluating the test module.
+globalThis.testEnv={DB:db};globalThis.testIdentity=()=>identity;
+const mod=await import('data:text/javascript;base64,'+Buffer.from('const env=globalThis.testEnv; const getChatGPTUser=()=>globalThis.testIdentity();\n'+js+'\n//bound').toString('base64'));
+const post=async(action,payload,version=row.version)=>{const response=await mod.POST(new Request('https://desk.test/api/desk',{method:'POST',headers:{origin:'https://desk.test','Content-Type':'application/json'},body:JSON.stringify({action,payload,version})}));return {status:response.status,body:await response.json()}};
+assert.equal((await mod.GET()).status,200);
+assert.equal((await post('event',{name:'Show',code:'SHOW',date:'2026-11-28',venue:'Hall',price:200})).status,200);
+const eventId=JSON.parse(row.data).events[0].id;
+assert.equal((await post('booking',{eventId,name:'X',quantity:4,reference:'DIRECT',payment:'COLLECT AT VENUE',remarks:''})).status,200);
+let b=JSON.parse(row.data).bookings[0];assert.equal(b.ref,'SHOW-281126-001');
+assert.equal((await post('issue',{id:b.id,quantity:2})).status,400);
+assert.equal((await post('issue',{id:b.id,quantity:2,markPaid:true})).status,200);
+assert.equal(JSON.parse(row.data).bookings[0].issued,2);
+assert.equal((await post('issue',{id:b.id,quantity:3})).status,400);
+assert.equal((await post('issue',{id:b.id,quantity:2})).status,200);
+assert.equal((await post('issue',{id:b.id,quantity:1})).status,400);
+assert.equal((await post('reference',{name:'TEST'},0)).status,409);
+await post('user',{name:'Booker',email:'booker@example.com',role:'booking',active:true});identity={userId:'booker',email:'booker@example.com',displayName:'Booker'};
+assert.equal((await post('event',{name:'Bad'})).status,400);
+assert.equal((await post('issue',{id:b.id,quantity:1})).status,400);
+assert.deepEqual((await (await mod.GET()).json()).users,[]);
+identity={userId:'unknown',email:'unknown@example.com'};assert.equal((await mod.GET()).status,403);
+console.log('Passed: booking reference, partial issuance, payment confirmation, over-issuance, stale write, role restrictions, unknown user denial.');
