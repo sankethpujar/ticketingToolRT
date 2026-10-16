@@ -5,3 +5,22 @@
 /* Keep the full wordmark comfortable in the sidebar. */
 .brand{font-size:19px;letter-spacing:-.7px;gap:8px}.brandlight{display:block;font-size:14px;letter-spacing:.5px}.brand small{font-size:7px;letter-spacing:1.1px}.brandicon{padding:7px}
 @media(max-width:1100px) and (min-width:701px){.brand{font-size:16px;gap:6px}.brandicon{padding:5px}.brand small{font-size:6px;letter-spacing:.6px}}
+
+/* Saffron and maroon theme trial. Previous palette retained in Git history. */
+body{background:#fcf8f3;color:#382b30}
+aside,header,.panel,.eventcard,.dialog{background:#fffdf9;border-color:#eadfd7}
+.brand{color:#711f36}.brandlight{color:#a15b38}.brandicon{background:#7c233b;color:#ffcf80}
+.nav{color:#806a6c}.nav.active{background:#f8e7db;color:#7c233b;box-shadow:inset 3px 0 #e9a12d}
+.navlabel{color:#a18b83}.private{border-color:#eadfd7;color:#806a6c}.private span{background:#da8e19}
+.avatar{background:#ffe6b6;color:#7c233b}.sidebottom{border-color:#eadfd7}
+.primary{background:#7c233b;border-color:#7c233b;color:#fffaf3}
+.eyebrow{color:#985024}.hero{background:linear-gradient(115deg,#fff0d0,#f4d291);border-color:#ebcc96}
+.pill{color:#844322;border-color:#c88d4666;background:#fff7e74d}.hero h2{color:#682136}.hero p{color:#98653d}.hero button{color:#74273b;background:#fffbf1cc;border-color:#cfac79}
+.ticketart{background:#7c233b;color:#ffdda0;box-shadow:9px 13px 0 #9a5b3540}.ticketart small{color:#f0bc7e}.dashes{border-color:#d6986c}.barcode{color:#ffdda0}
+.eventposter{background:#6c2039;color:#ffd28a}.tone1{background:#bc7020;color:#fff1d5}.tone2{background:#4f2639;color:#f7d0a0}
+.eventinfo footer{color:#8e3b43;border-color:#efe2d7}.eventinfo small{color:#a07351}.newevent{border-color:#d7bda9;background:#fffaf4}.newevent>span{background:#ffebc9;color:#9c4c25}.newevent strong{color:#7c233b}
+.stats>div{background:#fffdf9;border-color:#eadfd7}.stats strong{color:#76263b}.stats>div:nth-child(3){background:#fff2da;border-color:#efd5a3}
+th{background:#faf3ec;color:#9a7a6f}td,.toolbar{border-color:#f0e6de}.refbadge{background:#f4e7de;color:#8c4b45}.search,input,select{background:#fffdf9;border-color:#e5d7ce;color:#573b42}
+input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;border-color:#efd6ac}.rolecard svg{color:#8c3442}.rolecard h3{color:#6c2039}
+.bookingbrief{background:#fbefdf}.bookingbrief span{color:#976744}.dialogactions,.mainfooter,.audit{border-color:#eadfd7}.mainfooter{color:#a08070}
+.overlay{background:#34112080}.loading{color:#7c233b}.complete{color:#327555}.paid{background:#e9f5ed;color:#238353}.pending{background:#fff0ce;color:#966016}
