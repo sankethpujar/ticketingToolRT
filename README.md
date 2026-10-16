@@ -1,4 +1,4 @@
-# Ranga Tickets
+# Rangatantra tickets
 
 Private event reservation and physical ticket issuance desk. Responsive React interface, server-side role checks, ChatGPT sign-in and Cloudflare D1 persistence.
 
