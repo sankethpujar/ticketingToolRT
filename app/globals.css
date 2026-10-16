@@ -46,3 +46,6 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 
 /* A clear completion card for fully issued bookings. */
 .complete{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:112px;min-height:42px;padding:11px 15px;background:#23704b;color:#fffbed;border:1px solid #185c3c;border-radius:8px;box-shadow:0 2px 5px #254a2d18,inset 0 1px 0 #ffffff20;white-space:nowrap}.complete strong{font-size:12px;font-weight:800;letter-spacing:1px}.complete svg{flex-shrink:0;color:#ffe1a0}
+
+/* Matching action and completion dimensions keep each row aligned. */
+.rowactions .issue-ticket-button,.rowactions .complete{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:88px;min-width:88px;height:30px;min-height:30px;padding:7px 9px;font-family:inherit;font-size:10px;line-height:14px;font-weight:600;letter-spacing:normal;border-radius:7px;white-space:nowrap}.rowactions .complete{background:#23704b;border:1px solid #185c3c;color:#fffbed;box-shadow:none}
