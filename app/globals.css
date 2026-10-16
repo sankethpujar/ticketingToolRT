@@ -24,3 +24,17 @@ th{background:#faf3ec;color:#9a7a6f}td,.toolbar{border-color:#f0e6de}.refbadge{b
 input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;border-color:#efd6ac}.rolecard svg{color:#8c3442}.rolecard h3{color:#6c2039}
 .bookingbrief{background:#fbefdf}.bookingbrief span{color:#976744}.dialogactions,.mainfooter,.audit{border-color:#eadfd7}.mainfooter{color:#a08070}
 .overlay{background:#34112080}.loading{color:#7c233b}.complete{color:#327555}.paid{background:#e9f5ed;color:#238353}.pending{background:#fff0ce;color:#966016}
+
+/* Counter reference shortcuts share the dropdown filter state. */
+.reference-shortcuts{background:#fffdf9;border:1px solid #eadfd7;border-radius:10px;padding:18px 20px;margin-bottom:18px}
+.reference-shortcuts-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+.reference-shortcuts-heading>span{font-size:10px;letter-spacing:1.4px;font-weight:600;color:#98653d}
+.reference-reset{padding:5px 9px;font-size:11px;border-color:transparent;background:transparent;color:#8c4b45}
+.reference-reset.selected{background:#fff0ce;border-color:#efd5a3;color:#76263b}
+.reference-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.reference-button{min-height:44px;padding:11px 8px;background:#fff7ea;border:1px solid #e9cfaa;color:#76263b;font-size:12px;font-weight:600;overflow-wrap:anywhere;line-height:1.35}
+.reference-button:hover{background:#ffe9c2;border-color:#d7a05d;filter:none}
+.reference-button.selected{background:#7c233b;border-color:#7c233b;color:#ffdda0;box-shadow:inset 0 -3px 0 #e9a12d}
+.reference-button:focus-visible,.reference-reset:focus-visible{outline:2px solid #b97924;outline-offset:3px}
+@media(max-width:1000px){.reference-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:480px){.reference-shortcuts{padding:15px 12px}.reference-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
