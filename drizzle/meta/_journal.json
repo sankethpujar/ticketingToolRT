@@ -8,6 +8,13 @@
       "when": 1792164149564,
       "tag": "0000_glorious_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792171957587,
+      "tag": "0001_perpetual_toro",
+      "breakpoints": true
     }
   ]
 }
