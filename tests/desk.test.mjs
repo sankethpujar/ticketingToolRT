@@ -26,6 +26,19 @@ state=await(await get(workerCookie)).json();const b=state.bookings[0];assert.equ
 assert.equal((await post('issue',{id:b.id,quantity:1},workerCookie)).status,400);
 assert.equal((await post('issue',{id:b.id,quantity:1,markPaid:true},workerCookie)).status,200);
 assert.equal((await post('issue',{id:b.id,quantity:3},workerCookie)).status,400);
+// Reference archiving preserves history, rejects new bookings and supports corrections.
+assert.equal((await post('reference',{name:'SANKTH'},managerCookie)).status,200);
+assert.equal((await post('booking',{eventId,name:'Reference guest',quantity:1,reference:'SANKTH',payment:'PAID'},workerCookie)).status,200);
+assert.equal((await post('archiveReference',{original:'SANKTH'},workerCookie)).status,400);
+assert.equal((await post('archiveReference',{original:'SANKTH'},managerCookie)).status,200);
+state=await(await get(superCookie)).json();assert.ok(state.archivedReferences.includes('SANKTH'));assert.ok(state.bookings.some(b=>b.reference==='SANKTH'));
+assert.equal((await post('booking',{eventId,name:'Blocked ref',quantity:1,reference:'SANKTH',payment:'PAID'},workerCookie)).status,400);
+assert.equal((await post('reference',{name:'sankth'},managerCookie)).status,400);
+assert.equal((await post('editReference',{original:'SANKTH',name:'SANKETH'},managerCookie)).status,400);
+assert.equal((await post('editReference',{original:'SANKTH',name:'SANKETH_CORRECTED'},managerCookie)).status,200);
+state=await(await get(superCookie)).json();assert.ok(state.archivedReferences.includes('SANKETH_CORRECTED'));assert.ok(state.bookings.some(b=>b.reference==='SANKETH_CORRECTED'));assert.ok(!state.references.includes('SANKTH'));
+assert.equal((await post('restoreReference',{original:'SANKETH_CORRECTED'},managerCookie)).status,200);
+assert.equal((await post('booking',{eventId,name:'Restored ref',quantity:1,reference:'SANKETH_CORRECTED',payment:'PAID'},workerCookie)).status,200);
 assert.equal((await post('closeEvent',{id:eventId},workerCookie)).status,400);
 assert.equal((await post('closeEvent',{id:eventId},managerCookie)).status,200);
 assert.equal((await post('booking',{eventId,name:'Blocked',quantity:1,reference:'DIRECT',payment:'PAID'},workerCookie)).status,400);
