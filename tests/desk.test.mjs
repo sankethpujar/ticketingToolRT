@@ -21,6 +21,29 @@ assert.equal((await post('user',{username:'illegal',password:'Test-pass-123',rol
 assert.equal((await post('event',{name:'Show',code:'SHOW',date:'2026-11-28',venue:'Hall',price:200},managerCookie)).status,200);
 state=await(await get(superCookie)).json();const eventId=state.events[0].id;
 assert.equal((await post('event',{name:'Bad'},workerCookie)).status,400);
+// Plays and authenticated R2 script storage.
+const files=new Map();testEnv.BUCKET={async put(key,bytes){files.set(key,new Uint8Array(bytes));return {}},async get(key){const value=files.get(key);return value?{body:value,size:value.length}:null},async delete(key){files.delete(key)}};
+const scripts=await import(compile('app/api/plays/[id]/script/route.ts',{"import {env} from 'cloudflare:workers';":"const env=globalThis.testEnv;","from '../../../../rt-auth'":'from '+JSON.stringify(authUrl)}));
+assert.equal((await post('play',{name:'First play'},workerCookie)).status,400);
+assert.equal((await post('play',{name:'First play'},managerCookie)).status,200);
+assert.equal((await post('play',{name:'first PLAY'},managerCookie)).status,400);
+assert.equal((await post('play',{name:'Second play'},managerCookie)).status,200);
+state=await(await get(superCookie)).json();const playId=state.plays[0].id,otherPlayId=state.plays[1].id;const routeContext=id=>({params:Promise.resolve({id})});
+const readScript=(id,cookie=workerCookie)=>scripts.GET(request('/api/plays/'+id+'/script',null,cookie),routeContext(id));
+assert.equal((await readScript(playId,'')).status,401);assert.equal((await readScript(playId)).status,404);
+async function uploadScript({cookie=managerCookie,id=playId,name='play.pdf',contents='%PDF-1.4\nA script PDF',version,origin='https://desk.test'}={}){const form=new FormData();form.set('file',new File([contents],name,{type:'application/pdf'}));form.set('version',String(version??(await(await get(managerCookie)).json()).version));return scripts.POST(new Request('https://desk.test/api/plays/'+id+'/script',{method:'POST',headers:{origin,cookie},body:form}),routeContext(id))}
+assert.equal((await uploadScript({cookie:''})).status,401);
+assert.equal((await uploadScript({cookie:workerCookie})).status,403);
+assert.equal((await uploadScript({contents:'not a pdf'})).status,400);
+assert.equal((await uploadScript({name:'script.txt'})).status,400);
+assert.equal((await uploadScript({origin:'https://evil.test'})).status,403);
+assert.equal((await uploadScript({version:-1})).status,409);
+assert.equal((await uploadScript()).status,200);assert.equal(files.size,1);
+let pdf=await readScript(playId);assert.equal(pdf.status,200);assert.equal(pdf.headers.get('content-type'),'application/pdf');assert.equal(await pdf.text(),'%PDF-1.4\nA script PDF');
+assert.equal((await readScript(otherPlayId)).status,404);
+const oldKey=[...files.keys()][0];assert.equal((await uploadScript({contents:'%PDF-1.4\nReplacement',name:'new-script.pdf'})).status,200);assert.equal(files.size,1);assert.equal(files.has(oldKey),false);
+state=await(await get(superCookie)).json();assert.equal(state.plays[0].script.name,'new-script.pdf');assert.equal(state.events.length,1);
+
 assert.equal((await post('booking',{eventId,name:'Guest',quantity:3,reference:'DIRECT',payment:'COLLECT AT VENUE'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();const b=state.bookings[0];assert.equal(b.ref,'SHOW-281126-001');assert.equal(state.users.length,0);
 assert.equal((await post('issue',{id:b.id,quantity:1},workerCookie)).status,400);
@@ -59,4 +82,4 @@ assert.equal((await login.POST(request('/api/auth',{action:'logout'},workerCooki
 assert.equal((await login.POST(request('/api/auth',{action:'login',username:'admin_RT',password:'Test-pass-123'},'', 'https://evil.test'))).status,403);
 for(let i=0;i<10;i++)assert.equal((await signIn('nonexistent','bad')).status,401);assert.equal((await signIn('nonexistent','bad')).status,429);
 sqlite.prepare('UPDATE rt_sessions SET expires_at=0').run();assert.equal((await get(superCookie)).status,401);
-console.log('Passed SQLite-backed auth and workflow integration: login/logout/expiry, hashed credentials, throttling, permissions, promotion, booking, partial issuance, closure and deletion.');
+console.log('Passed SQLite-backed auth and workflow integration: login/logout/expiry, hashed credentials, throttling, permissions, promotion, plays, PDF upload/read/replacement, booking, partial issuance, closure and deletion.');
