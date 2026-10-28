@@ -43,6 +43,19 @@ let pdf=await readScript(playId);assert.equal(pdf.status,200);assert.equal(pdf.h
 assert.equal((await readScript(otherPlayId)).status,404);
 const oldKey=[...files.keys()][0];assert.equal((await uploadScript({contents:'%PDF-1.4\nReplacement',name:'new-script.pdf'})).status,200);assert.equal(files.size,1);assert.equal(files.has(oldKey),false);
 state=await(await get(superCookie)).json();assert.equal(state.plays[0].script.name,'new-script.pdf');assert.equal(state.events.length,1);
+// Props plans are isolated by play, validated and revision protected.
+const propsPlan={labels:[{id:'chair',name:'Bench'},{id:'tree',name:'Tree'}],scenes:[{id:'s1',description:'Scene 1 - Park & Road',propIds:['chair','tree'],remarks:'Stage left'},{id:'s2',description:'Scene 2 - Home',propIds:['chair'],remarks:''}]};
+assert.equal((await post('playProps',{id:playId,revision:0,plan:propsPlan},workerCookie)).status,200);
+state=await(await get(superCookie)).json();assert.deepEqual(state.plays[0].props,propsPlan);assert.equal(state.plays[0].propsRevision,1);assert.equal(state.plays[1].props,undefined);assert.equal(state.plays[0].script.name,'new-script.pdf');
+assert.equal((await post('playProps',{id:playId,revision:0,plan:propsPlan},managerCookie)).status,400);
+assert.equal((await post('playProps',{id:playId,revision:1,plan:{...propsPlan,labels:[...propsPlan.labels,{id:'duplicate',name:'bench'}]}},workerCookie)).status,400);
+assert.equal((await post('playProps',{id:playId,revision:1,plan:{...propsPlan,scenes:[{...propsPlan.scenes[0],propIds:['unknown']}]}},workerCookie)).status,400);
+assert.equal((await post('playProps',{id:playId,revision:1,plan:{...propsPlan,scenes:[{...propsPlan.scenes[0],propIds:['chair','chair']}]}},workerCookie)).status,400);
+assert.equal((await post('playProps',{id:'missing',revision:0,plan:propsPlan},workerCookie)).status,400);
+const editedPlan={labels:[{id:'chair',name:'Bench'}],scenes:[{id:'s1',description:'Scene 1 - Revised',propIds:['chair'],remarks:'Bring two'}]};
+assert.equal((await post('playProps',{id:playId,revision:1,plan:editedPlan},workerCookie)).status,200);
+state=await(await get(superCookie)).json();assert.deepEqual(state.plays[0].props,editedPlan);assert.equal(state.plays[0].propsRevision,2);
+
 
 assert.equal((await post('booking',{eventId,name:'Guest',quantity:3,reference:'DIRECT',payment:'COLLECT AT VENUE'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();const b=state.bookings[0];assert.equal(b.ref,'SHOW-281126-001');assert.equal(state.users.length,0);
