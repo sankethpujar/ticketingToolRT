@@ -4,7 +4,8 @@ const DB={prepare(sql){let values=[];return {bind(...v){values=v;return this},as
 globalThis.testEnv={DB};
 function compile(path,replace={}){let s=fs.readFileSync(path,'utf8');for(const [a,b] of Object.entries(replace))s=s.replace(a,b);return 'data:text/javascript;base64,'+Buffer.from(ts.transpileModule(s,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText).toString('base64')}
 const authUrl=compile('app/rt-auth.ts',{"import {env} from 'cloudflare:workers';":"const env=globalThis.testEnv;","import {headers} from 'next/headers';":"const headers=()=>new Headers();"});const auth=await import(authUrl);testEnv.RT_BOOTSTRAP_SALT='12345678901234567890123456789012';testEnv.RT_BOOTSTRAP_HASH=await auth.passwordHash('Test-pass-123',testEnv.RT_BOOTSTRAP_SALT);
-const login=await import(compile('app/api/auth/route.ts',{"from '../../rt-auth'":'from '+JSON.stringify(authUrl)}));const desk=await import(compile('app/api/desk/route.ts',{'import {env} from "cloudflare:workers";':'const env=globalThis.testEnv;','from "../../rt-auth"':'from '+JSON.stringify(authUrl)}));
+globalThis.soundUtilities=await import(compile('lib/soundboard.ts'));
+const login=await import(compile('app/api/auth/route.ts',{"from '../../rt-auth'":'from '+JSON.stringify(authUrl)}));const desk=await import(compile('app/api/desk/route.ts',{'import {cueShortcut,shortcutTaken} from "../../../lib/soundboard";':'const {cueShortcut,shortcutTaken}=globalThis.soundUtilities;','import {env} from "cloudflare:workers";':'const env=globalThis.testEnv;','from "../../rt-auth"':'from '+JSON.stringify(authUrl)}));
 const request=(path,body,cookie='',origin='https://desk.test')=>new Request('https://desk.test'+path,{method:body?'POST':'GET',headers:{origin,'Content-Type':'application/json',cookie},...(body?{body:JSON.stringify(body)}:{})});
 const signIn=async(username,password='Test-pass-123')=>login.POST(request('/api/auth',{action:'login',username,password}));
 const get=async(cookie)=>desk.GET(request('/api/desk',null,cookie));
@@ -55,6 +56,27 @@ assert.equal((await post('playProps',{id:'missing',revision:0,plan:propsPlan},wo
 const editedPlan={labels:[{id:'chair',name:'Bench'}],scenes:[{id:'s1',description:'Scene 1 - Revised',propIds:['chair'],remarks:'Bring two'}]};
 assert.equal((await post('playProps',{id:playId,revision:1,plan:editedPlan},workerCookie)).status,200);
 state=await(await get(superCookie)).json();assert.deepEqual(state.plays[0].props,editedPlan);assert.equal(state.plays[0].propsRevision,2);
+// Scene soundboard uploads stream to R2, are protected, and enforce unique shortcuts.
+testEnv.BUCKET={async put(key,body){const bytes=new Uint8Array(await new Response(body).arrayBuffer());files.set(key,bytes);return {}},async get(key){const value=files.get(key);return value?{body:value,size:value.length}:null},async delete(key){files.delete(key)}};
+const soundApi=await import(compile('app/api/soundboard/[id]/route.ts',{"import {env} from 'cloudflare:workers';":"const env=globalThis.testEnv;","from '../../../rt-auth'":'from '+JSON.stringify(authUrl),"import {audioTypes,cueShortcut,shortcutTaken} from '../../../../lib/soundboard';":"const {audioTypes,cueShortcut,shortcutTaken}=globalThis.soundUtilities;"}));
+assert.equal((await post('soundScene',{name:'Scene 1',description:'Park'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();const soundScene=state.soundboard.scenes[0];
+const soundCtx=id=>({params:Promise.resolve({id})});
+async function uploadSound({shortcut='1',slot='within',cookie=workerCookie,name='Birds',extension='wav',version,declaredSize=12}={}){return soundApi.POST(new Request('https://desk.test/api/soundboard/'+soundScene.id,{method:'POST',headers:{origin:'https://desk.test',cookie,'content-length':String(declaredSize),'x-file-name':'bird.'+extension,'x-cue-name':name,'x-cue-shortcut':shortcut,'x-cue-slot':slot,'x-workspace-version':String(version??(await(await get(workerCookie)).json()).version)},body:new Uint8Array(12)}),soundCtx(soundScene.id))}
+assert.equal((await uploadSound({cookie:''})).status,401);
+assert.equal((await uploadSound({extension:'exe'})).status,400);
+assert.equal((await uploadSound({declaredSize:51*1024*1024})).status,413);
+assert.equal((await uploadSound({version:-1})).status,409);
+assert.equal((await uploadSound()).status,200);
+assert.equal((await uploadSound()).status,400);
+assert.equal((await uploadSound({shortcut:'2',slot:'post',name:'After scene'})).status,200);
+state=await(await get(workerCookie)).json();const cue=state.soundboard.scenes[0].cues[0];assert.equal(cue.shortcut,'1');assert.equal(state.soundboard.scenes[0].cues[1].slot,'post');assert.equal(state.events.length,1);
+let audioResponse=await soundApi.GET(request('/api/soundboard/'+cue.id,null,''),soundCtx(cue.id));assert.equal(audioResponse.status,401);
+audioResponse=await soundApi.GET(request('/api/soundboard/'+cue.id,null,workerCookie),soundCtx(cue.id));assert.equal(audioResponse.status,200);assert.equal(audioResponse.headers.get('content-type'),'audio/wav');assert.equal((await audioResponse.arrayBuffer()).byteLength,12);
+assert.equal((await post('soundCue',{id:cue.id,name:'Birds edited',shortcut:'2'},workerCookie)).status,400);
+assert.equal((await post('soundCue',{id:cue.id,name:'Birds edited',shortcut:'b'},workerCookie)).status,200);
+assert.equal((await post('soundScene',{id:soundScene.id,name:'Park & Road',description:'Night'},workerCookie)).status,200);
+
 
 
 assert.equal((await post('booking',{eventId,name:'Guest',quantity:3,reference:'DIRECT',payment:'COLLECT AT VENUE'},workerCookie)).status,200);

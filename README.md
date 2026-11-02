@@ -25,3 +25,8 @@ Validation: `node node_modules/typescript/bin/tsc --noEmit`, `node tests/desk.te
 
 ## Pending
 Optional event image gallery; editable event pricing; booking cancellation and quantity edits; invitation onboarding; per-ticket pricing/refunds/partial payments; NFR review. Existing booking prices are captured at registration.
+
+## Soundboard
+The Soundboard navigation item opens a shared scene-by-scene cue board. Team members can add/edit scenes, upload sounds into the within-scene or post-scene columns, and edit cue names and unique letter/number shortcuts. Space or Escape stops all sounds outside text fields/dialogs. Clicking a playing cue stops it; other cues can overlap. Playback is on the operator's device and stops when leaving the page.
+
+Audio is stored in the private R2 binding `BUCKET` and served through authenticated routes with byte-range support. Raw file uploads stream into R2, with a 50 MB per-file limit. Supported extensions are MP3, WAV, OGG, M4A, AAC, FLAC and WebM; playback depends on browser codec support. Sounds load over the internet; this version has no offline cache. Scene metadata uses version-checked state writes. The scene list scrolls vertically and the three-column layout scrolls horizontally on smaller screens.
