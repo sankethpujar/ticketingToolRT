@@ -139,3 +139,17 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 @media(max-width:700px){.sb-volume{gap:10px;padding:12px}.sb-volume-levels{flex-basis:100%;min-width:0;order:2}.sb-volume-help{margin-left:auto}.sb-volume-levels button{font-size:9px}}
 
 .soundboard.sb-fullscreen-mode{position:fixed;inset:0;z-index:1000;height:100dvh;margin:0}
+
+/* Compact sound cards: approximately three quarters of their former height. */
+.sb-cue-wrap .sb-cue{min-height:95px;padding:10px 10px 34px;gap:6px}
+.sb-post .sb-cue{min-height:109px;padding:9px 8px 34px;gap:6px}
+.sb-add-cue{min-height:95px;gap:7px}
+.sb-add-post{padding:9px 4px;gap:6px}
+.sb-play-cue{width:26px;height:26px;right:8px;bottom:36px}
+.sb-play-cue svg{width:15px;height:15px}
+.sb-edit-cue{top:7px;right:6px}
+.sb-row{min-height:155px}
+.sb-within{padding-top:15px;padding-bottom:15px}
+.sb-post{padding-top:15px;padding-bottom:15px;gap:9px}
+.sb-scene{padding-top:17px;padding-bottom:17px}
+.sb-cues{row-gap:11px}
