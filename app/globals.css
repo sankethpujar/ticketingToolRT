@@ -108,12 +108,12 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 .sb-head>div:nth-child(2){font-size:18px;text-align:center}@media(max-width:900px){.sb-head>div:nth-child(2){font-size:16.5px}}
 
 .sb-fullscreen{color:#76263b;border-color:#d6b9a6;background:#fff5e4}
-.soundboard:fullscreen{width:100%;height:100%;padding:24px;background:#fffaf3;display:flex;flex-direction:column;overflow:auto}
-.soundboard:fullscreen .sb-local-banner{flex-shrink:0;margin-bottom:16px}
-.soundboard:fullscreen .sb-controls{flex-shrink:0;margin-bottom:16px}
-.soundboard:fullscreen .sb-scroll{flex:1;min-height:160px;max-height:none}
-.soundboard:fullscreen .sb-footer{flex-shrink:0;margin-bottom:0}
-@media(max-width:700px){.soundboard:fullscreen{padding:14px}.soundboard:fullscreen .sb-controls{gap:10px}}
+.soundboard.sb-fullscreen-mode{width:100%;height:100%;padding:24px;background:#fffaf3;display:flex;flex-direction:column;overflow:auto}
+.soundboard.sb-fullscreen-mode .sb-local-banner{flex-shrink:0;margin-bottom:16px}
+.soundboard.sb-fullscreen-mode .sb-controls{flex-shrink:0;margin-bottom:16px}
+.soundboard.sb-fullscreen-mode .sb-scroll{flex:1;min-height:160px;max-height:none}
+.soundboard.sb-fullscreen-mode .sb-footer{flex-shrink:0;margin-bottom:0}
+@media(max-width:700px){.soundboard.sb-fullscreen-mode{padding:14px}.soundboard.sb-fullscreen-mode .sb-controls{gap:10px}}
 
 .sb-add-scene-bottom{padding:20px;display:flex;justify-content:center;border-top:1px solid #e4ccaf;background:#fffaf3}
 
@@ -137,3 +137,5 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 .sb-volume-levels kbd{font-size:9px;font-weight:700;opacity:.8}.sb-volume-help{font-size:10px;color:#916d5b}
 .sb-volume-levels button:focus-visible{outline:2px solid #b97924;outline-offset:2px}
 @media(max-width:700px){.sb-volume{gap:10px;padding:12px}.sb-volume-levels{flex-basis:100%;min-width:0;order:2}.sb-volume-help{margin-left:auto}.sb-volume-levels button{font-size:9px}}
+
+.soundboard.sb-fullscreen-mode{position:fixed;inset:0;z-index:1000;height:100dvh;margin:0}
