@@ -1,0 +1,10 @@
+import ts from 'typescript';import fs from 'node:fs';import assert from 'node:assert/strict';
+const compile=(path)=>'data:text/javascript;base64,'+Buffer.from(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.ES2022}}).outputText).toString('base64');
+const source=ts.transpileModule(fs.readFileSync('lib/scene-sounds.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ES2022}}).outputText.replace("'./soundboard'",JSON.stringify(compile('lib/soundboard.ts')));
+const {sceneSoundNames,sceneSoundLimitMessage}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const file=name=>({name,size:100}),files=n=>Array.from({length:n},(_,i)=>file('Sound '+(i+1)+'.mp3'));
+assert.equal(sceneSoundNames(0,files(3)).length,3);assert.equal(sceneSoundNames(0,files(5)).length,5);assert.equal(sceneSoundNames(0,files(6)).length,6);assert.equal(sceneSoundNames(3,files(3)).length,3);
+for(const [existing,count] of [[0,7],[5,2],[6,1]])assert.throws(()=>sceneSoundNames(existing,files(count)),{message:sceneSoundLimitMessage});
+assert.deepEqual(sceneSoundNames(0,[file('Bird.chirping.WAV'),file('ರಂಗ.mp3')]),['Bird.chirping','ರಂಗ']);
+assert.throws(()=>sceneSoundNames(0,[file('good.mp3'),file('bad.pdf')]));assert.throws(()=>sceneSoundNames(0,[{name:'empty.wav',size:0}]));
+console.log('Passed 3/5/6-file batches, cumulative six-cue limit, filename labels and invalid-file rejection.');

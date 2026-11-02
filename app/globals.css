@@ -116,3 +116,5 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 @media(max-width:700px){.soundboard:fullscreen{padding:14px}.soundboard:fullscreen .sb-controls{gap:10px}}
 
 .sb-add-scene-bottom{padding:20px;display:flex;justify-content:center;border-top:1px solid #e4ccaf;background:#fffaf3}
+
+.sb-within.sb-drag-over{background:#ffedc6;box-shadow:inset 0 0 0 3px #b97924}.sb-drop-hint{font-size:10px;color:#9b765b;margin-bottom:12px}.sb-drag-over .sb-drop-hint{color:#76263b;font-weight:700}
