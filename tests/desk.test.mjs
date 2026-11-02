@@ -56,22 +56,14 @@ assert.equal((await post('playProps',{id:'missing',revision:0,plan:propsPlan},wo
 const editedPlan={labels:[{id:'chair',name:'Bench'}],scenes:[{id:'s1',description:'Scene 1 - Revised',propIds:['chair'],remarks:'Bring two'}]};
 assert.equal((await post('playProps',{id:playId,revision:1,plan:editedPlan},workerCookie)).status,200);
 state=await(await get(superCookie)).json();assert.deepEqual(state.plays[0].props,editedPlan);assert.equal(state.plays[0].propsRevision,2);
-// Audio bytes never reach R2; only cue metadata is accepted.
+// Neither audio nor scene/cue metadata is accepted by server endpoints.
 const soundApi=await import(compile('app/api/soundboard/[id]/route.ts',{"from '../../../rt-auth'":'from '+JSON.stringify(authUrl)}));
-assert.equal((await post('soundScene',{name:'Scene 1',description:'Park'},workerCookie)).status,200);
-state=await(await get(workerCookie)).json();const soundScene=state.soundboard.scenes[0],cueId=crypto.randomUUID(),secondCueId=crypto.randomUUID();const initialFiles=files.size;
-const localCue={id:cueId,sceneId:soundScene.id,name:'Birds',shortcut:'1',slot:'within'};
-assert.equal((await post('soundLocalCue',localCue,workerCookie)).status,200);
-assert.equal((await post('soundLocalCue',{...localCue,id:secondCueId},workerCookie)).status,400);
-assert.equal((await post('soundLocalCue',{...localCue,id:secondCueId,shortcut:'2',slot:'post'},workerCookie)).status,200);
-assert.equal(files.size,initialFiles);
-state=await(await get(workerCookie)).json();const cue=state.soundboard.scenes[0].cues[0];assert.equal(cue.storage,'local');assert.equal(cue.key,undefined);assert.equal(cue.type,undefined);
-assert.equal((await soundApi.POST(request('/api/soundboard/'+soundScene.id,{anything:'no bytes'},workerCookie))).status,410);
-assert.equal((await soundApi.GET(request('/api/soundboard/'+cueId,null,workerCookie))).status,410);
-assert.equal((await soundApi.POST(request('/api/soundboard/'+soundScene.id,{anything:'no bytes'},''))).status,401);
-assert.equal((await post('soundCue',{id:cue.id,name:'Birds edited',shortcut:'2'},workerCookie)).status,400);
-assert.equal((await post('soundCue',{id:cue.id,name:'Birds edited',shortcut:'b'},workerCookie)).status,200);
-assert.equal((await post('soundScene',{id:soundScene.id,name:'Park & Road',description:'Night'},workerCookie)).status,200);
+const initialFiles=files.size,initialVersion=(await(await get(workerCookie)).json()).version;
+for(const action of ['soundScene','soundLocalCue','soundCue'])assert.equal((await post(action,{name:'Local only'},workerCookie)).status,410);
+state=await(await get(workerCookie)).json();assert.equal(state.soundboard,undefined);assert.equal(state.version,initialVersion);assert.equal(files.size,initialFiles);
+assert.equal((await soundApi.POST(request('/api/soundboard/test',{anything:'no bytes'},workerCookie))).status,410);
+assert.equal((await soundApi.GET(request('/api/soundboard/test',null,workerCookie))).status,410);
+assert.equal((await soundApi.POST(request('/api/soundboard/test',{anything:'no bytes'},''))).status,401);
 assert.equal((await post('booking',{eventId,name:'Guest',quantity:3,reference:'DIRECT',payment:'COLLECT AT VENUE'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();const b=state.bookings[0];assert.equal(b.ref,'SHOW-281126-001');assert.equal(state.users.length,0);
 assert.equal((await post('issue',{id:b.id,quantity:1},workerCookie)).status,400);
