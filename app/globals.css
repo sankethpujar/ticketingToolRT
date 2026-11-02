@@ -104,3 +104,5 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 .sb-replace-local{min-height:27px}
 
 .sb-clear{color:#8c3042;border-color:#d5adb7;background:#fff6f3}.sb-controls>div:last-child{flex-wrap:wrap}@media(max-width:600px){.sb-controls>div:last-child button{flex:1 1 auto}}
+
+.sb-head>div:nth-child(2){font-size:18px;text-align:center}@media(max-width:900px){.sb-head>div:nth-child(2){font-size:16.5px}}
