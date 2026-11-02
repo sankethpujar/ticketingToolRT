@@ -92,3 +92,13 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 .nav-collapsed .nav{width:40px;padding:11px 0}
 .nav-collapsed .sidebottom{display:none}
 }
+
+/* Cue selection and explicit playback controls. */
+.sb-cue-wrap{display:grid;grid-template-rows:1fr auto;row-gap:3px}.sb-cue-wrap .sb-cue{height:100%;padding-bottom:48px}
+.sb-cue.is-selected,.sb-local-missing .sb-cue.is-selected{outline:4px solid #63162f;outline-offset:2px}
+.sb-cue.is-selected:focus-visible{outline:4px solid #63162f;outline-offset:2px;box-shadow:0 0 0 8px #e9a12d66}
+.sb-play-cue{position:absolute;right:10px;bottom:37px;width:32px;height:32px;padding:0;border-radius:50%;background:#7c233b;border:1px solid #7c233b;color:#fff2ce;z-index:1}
+.sb-play-cue:hover{background:#63162f}
+.sb-play-cue:focus-visible{outline:3px solid #d99424;outline-offset:2px}
+.sb-cue-wrap.active .sb-play-cue{background:#ffdda0;color:#63162f;border-color:#ffdda0}
+.sb-replace-local{min-height:27px}
