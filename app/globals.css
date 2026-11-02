@@ -106,3 +106,11 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 .sb-clear{color:#8c3042;border-color:#d5adb7;background:#fff6f3}.sb-controls>div:last-child{flex-wrap:wrap}@media(max-width:600px){.sb-controls>div:last-child button{flex:1 1 auto}}
 
 .sb-head>div:nth-child(2){font-size:18px;text-align:center}@media(max-width:900px){.sb-head>div:nth-child(2){font-size:16.5px}}
+
+.sb-fullscreen{color:#76263b;border-color:#d6b9a6;background:#fff5e4}
+.soundboard:fullscreen{width:100%;height:100%;padding:24px;background:#fffaf3;display:flex;flex-direction:column;overflow:auto}
+.soundboard:fullscreen .sb-local-banner{flex-shrink:0;margin-bottom:16px}
+.soundboard:fullscreen .sb-controls{flex-shrink:0;margin-bottom:16px}
+.soundboard:fullscreen .sb-scroll{flex:1;min-height:160px;max-height:none}
+.soundboard:fullscreen .sb-footer{flex-shrink:0;margin-bottom:0}
+@media(max-width:700px){.soundboard:fullscreen{padding:14px}.soundboard:fullscreen .sb-controls{gap:10px}}
