@@ -155,3 +155,17 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 .sb-cues{row-gap:11px}
 
 .soundboard .sb-local-banner{margin:16px 0 0;flex-shrink:0}.soundboard.sb-fullscreen-mode .sb-local-banner{margin:12px 0 0}
+
+/* Slim volume rail with ten discrete, clickable stops. */
+.sb-volume{padding:4px 0;margin-bottom:12px;border:0;border-radius:0;background:transparent;gap:12px}
+.sb-volume-levels{position:relative;height:34px;min-width:280px;gap:0}
+.sb-volume-levels::before{content:'';position:absolute;top:8px;left:5%;right:5%;height:3px;border-radius:3px;background:#d9bd96}
+.sb-volume-levels button,.sb-volume-levels button.filled,.sb-volume-levels button.selected{position:relative;z-index:1;display:flex;justify-content:flex-start;align-items:center;gap:0;min-height:34px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#916d5b}
+.sb-volume-levels button::before{content:'';display:block;flex-shrink:0;width:11px;height:11px;margin:4px 0 5px;border-radius:50%;background:#fffaf3;border:2px solid #c5a076}
+.sb-volume-levels button.filled::before{background:#e9a12d;border-color:#e9a12d}
+.sb-volume-levels button.selected::before{background:#7c233b;border-color:#7c233b;box-shadow:0 0 0 3px #e9a12d55}
+.sb-volume-levels button.selected{color:#76263b;font-weight:700}
+.sb-volume-levels button span{font-size:9px;line-height:12px}
+.sb-volume-levels kbd{display:none}
+.sb-volume-levels button:hover::before{border-color:#7c233b}
+@media(max-width:700px){.sb-volume{padding:4px 0;gap:8px}.sb-volume-levels{min-width:0;height:34px}}
