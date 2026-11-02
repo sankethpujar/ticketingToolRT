@@ -153,3 +153,5 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 .sb-post{padding-top:15px;padding-bottom:15px;gap:9px}
 .sb-scene{padding-top:17px;padding-bottom:17px}
 .sb-cues{row-gap:11px}
+
+.soundboard .sb-local-banner{margin:16px 0 0;flex-shrink:0}.soundboard.sb-fullscreen-mode .sb-local-banner{margin:12px 0 0}
