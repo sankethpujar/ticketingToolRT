@@ -4,8 +4,9 @@ const DB={prepare(sql){let values=[];return {bind(...v){values=v;return this},as
 globalThis.testEnv={DB};
 function compile(path,replace={}){let s=fs.readFileSync(path,'utf8');for(const [a,b] of Object.entries(replace))s=s.replace(a,b);return 'data:text/javascript;base64,'+Buffer.from(ts.transpileModule(s,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText).toString('base64')}
 const authUrl=compile('app/rt-auth.ts',{"import {env} from 'cloudflare:workers';":"const env=globalThis.testEnv;","import {headers} from 'next/headers';":"const headers=()=>new Headers();"});const auth=await import(authUrl);testEnv.RT_BOOTSTRAP_SALT='12345678901234567890123456789012';testEnv.RT_BOOTSTRAP_HASH=await auth.passwordHash('Test-pass-123',testEnv.RT_BOOTSTRAP_SALT);
+globalThis.paymentUtilities=await import(compile("lib/payments.ts"));
 globalThis.soundUtilities=await import(compile('lib/soundboard.ts'));
-const login=await import(compile('app/api/auth/route.ts',{"from '../../rt-auth'":'from '+JSON.stringify(authUrl)}));const desk=await import(compile('app/api/desk/route.ts',{'import {cueShortcut,shortcutTaken} from "../../../lib/soundboard";':'const {cueShortcut,shortcutTaken}=globalThis.soundUtilities;','import {env} from "cloudflare:workers";':'const env=globalThis.testEnv;','from "../../rt-auth"':'from '+JSON.stringify(authUrl)}));
+const login=await import(compile('app/api/auth/route.ts',{"from '../../rt-auth'":'from '+JSON.stringify(authUrl)}));const desk=await import(compile('app/api/desk/route.ts',{'import {bookingTotal,paymentReceived,receiveIssuePayment} from "../../../lib/payments";':'const {bookingTotal,paymentReceived,receiveIssuePayment}=globalThis.paymentUtilities;','import {cueShortcut,shortcutTaken} from "../../../lib/soundboard";':'const {cueShortcut,shortcutTaken}=globalThis.soundUtilities;','import {env} from "cloudflare:workers";':'const env=globalThis.testEnv;','from "../../rt-auth"':'from '+JSON.stringify(authUrl)}));
 const request=(path,body,cookie='',origin='https://desk.test')=>new Request('https://desk.test'+path,{method:body?'POST':'GET',headers:{origin,'Content-Type':'application/json',cookie},...(body?{body:JSON.stringify(body)}:{})});
 const signIn=async(username,password='Test-pass-123')=>login.POST(request('/api/auth',{action:'login',username,password}));
 const get=async(cookie)=>desk.GET(request('/api/desk',null,cookie));
@@ -90,6 +91,17 @@ assert.equal((await post('issue',{id:partialBooking.id,quantity:1},workerCookie)
 assert.equal((await post('update',{id:partialBooking.id,payment:'PARTIALLY PAID',remarks:'Balance due'},workerCookie)).status,200);
 assert.equal((await post('issue',{id:partialBooking.id,quantity:2,paymentConfirmation:'full'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===partialBooking.id).payment,'PAID');
+// Five booked, three issued at 200 each: exactly 600 received, two still unissued.
+assert.equal((await post('booking',{eventId,name:'Five booked three arrived',quantity:5,reference:'DIRECT',payment:'COLLECT AT VENUE'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();const exampleId=state.bookings.find(x=>x.name==='Five booked three arrived').id;
+assert.equal((await post('issue',{id:exampleId,quantity:3,paymentConfirmation:'partial',remarks:'2 no shows'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();let example=state.bookings.find(x=>x.id===exampleId);assert.equal(example.amountReceived,600);assert.equal(example.payment,'PARTIALLY PAID');assert.equal(example.issued,3);assert.equal(example.quantity,5);
+assert.equal((await post('update',{id:exampleId,payment:'PARTIALLY PAID',remarks:'2 no shows'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,600);
+assert.equal((await post('issue',{id:exampleId,quantity:1,paymentConfirmation:'partial'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,800);
+assert.equal((await post('issue',{id:exampleId,quantity:1,paymentConfirmation:'full'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,1000);assert.equal(state.bookings.find(x=>x.id===exampleId).payment,'PAID');
 // Reference archiving preserves history, rejects new bookings and supports corrections.
 assert.equal((await post('reference',{name:'SANKTH'},managerCookie)).status,200);
 assert.equal((await post('booking',{eventId,name:'Reference guest',quantity:1,reference:'SANKTH',payment:'PAID'},workerCookie)).status,200);
