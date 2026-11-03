@@ -7,3 +7,9 @@ const report=buildIssuanceReport(data,'event');assert.equal(report.rows.length,3
 fs.writeFileSync('/tmp/issuance-report-qa.xlsx',reportXlsx(report.headers,report.rows,{sheetName:'Ticket issuance'}));console.log('Passed issued/unissued/partial counts, filters, event isolation, optional phones and payment status.');
 
 const exampleReport=buildIssuanceReport({bookings:[{...base,quantity:5,issued:3,price:200,amountReceived:600,payment:"PARTIALLY PAID",name:"Example",ref:"EX"}]},"event");assert.equal(exampleReport.rows[0][7],"ISSUED");assert.equal(exampleReport.rows[0][9],600);
+// Regression: ticket counts must use integer formatting; amounts remain currency.
+const workbookText=Buffer.from(reportXlsx(report.headers,report.rows)).toString('utf8');
+for(const column of ['E','F','G'])assert.match(workbookText,new RegExp('<c r="'+column+'2" s="5"><v>\\d+</v></c>'));
+assert.match(workbookText,/<c r="J2" s="2"><v>0<\/v><\/c>/);
+assert.match(workbookText,/<xf numFmtId="1"[^>]*applyNumberFormat="1"/);
+console.log('Count columns are numeric integers, with currency only for monetary columns.');
