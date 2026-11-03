@@ -9,3 +9,5 @@ fs.writeFileSync('/tmp/rangatantra-report-test.xlsx',reportXlsx(all.headers,all.
 console.log('Report columns, event isolation, overall rows, optional phones and empty reports passed.');
 
 const referenceReport=buildReport({...data,bookings:[{...data.bookings[0],payment:"COLLECT FROM REFERENCE"}]},"1");assert.equal(referenceReport.rows[0][3],"COLLECT FROM REFERENCE");
+
+assert.equal(buildReport({...data,bookings:[{...data.bookings[0],payment:"PARTIALLY PAID"}]},"1").rows[0][3],"PARTIALLY PAID");

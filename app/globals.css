@@ -169,3 +169,5 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 .sb-volume-levels kbd{display:none}
 .sb-volume-levels button:hover::before{border-color:#7c233b}
 @media(max-width:700px){.sb-volume{padding:4px 0;gap:8px}.sb-volume-levels{min-width:0;height:34px}}
+
+.payment-confirmation{border:1px solid #ddc6b3;border-radius:8px;padding:12px 14px;margin:16px 0}.payment-confirmation legend{font-size:11px;color:#76263b;padding:0 5px}.payment-confirmation .checkline{align-items:flex-start;line-height:1.5;margin:8px 0}.payment-confirmation input[type=radio]{accent-color:#7c233b;flex-shrink:0;margin-top:3px}
