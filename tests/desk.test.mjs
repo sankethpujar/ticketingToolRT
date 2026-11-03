@@ -67,8 +67,7 @@ assert.equal((await soundApi.GET(request('/api/soundboard/test',null,workerCooki
 assert.equal((await soundApi.POST(request('/api/soundboard/test',{anything:'no bytes'},''))).status,401);
 assert.equal((await post('booking',{eventId,name:'Guest',quantity:3,reference:'DIRECT',payment:'COLLECT AT VENUE'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();const b=state.bookings[0];assert.equal(b.ref,'SHOW-281126-001');assert.equal(state.users.length,0);
-assert.equal((await post('issue',{id:b.id,quantity:1},workerCookie)).status,400);
-assert.equal((await post('issue',{id:b.id,quantity:1,markPaid:true},workerCookie)).status,200);
+assert.equal((await post('issue',{id:b.id,quantity:1},workerCookie)).status,200);
 assert.equal((await post('issue',{id:b.id,quantity:3},workerCookie)).status,400);
 // Reference collection is a valid unpaid status for creation and updates.
 assert.equal((await post('booking',{eventId,name:'Reference payment',quantity:1,reference:'SANKETH',payment:'COLLECT FROM REFERENCE'},workerCookie)).status,200);
@@ -76,31 +75,24 @@ state=await(await get(workerCookie)).json();const referenceBooking=state.booking
 assert.equal((await post('update',{id:referenceBooking.id,payment:'COLLECT AT VENUE'},workerCookie)).status,200);
 assert.equal((await post('update',{id:referenceBooking.id,payment:'COLLECT FROM REFERENCE',remarks:'Collect via reference'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===referenceBooking.id).payment,'COLLECT FROM REFERENCE');
-assert.equal((await post('issue',{id:referenceBooking.id,quantity:1},workerCookie)).status,400);
-assert.equal((await post('issue',{id:referenceBooking.id,quantity:1,markPaid:true},workerCookie)).status,200);
-// Full/partial confirmations are mutually exclusive and partial payment stays unpaid.
+assert.equal((await post('issue',{id:referenceBooking.id,quantity:1},workerCookie)).status,200);
+// Issuance no longer needs any payment confirmation fields.
 assert.equal((await post('booking',{eventId,name:'Partial payment guest',quantity:3,reference:'DIRECT',payment:'COLLECT AT VENUE'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();const partialBooking=state.bookings.find(x=>x.name==='Partial payment guest');
-assert.equal((await post('issue',{id:partialBooking.id,quantity:1},workerCookie)).status,400);
-assert.equal((await post('issue',{id:partialBooking.id,quantity:1,markPaid:true,markPartialPaid:true},workerCookie)).status,400);
-assert.equal((await post('issue',{id:partialBooking.id,quantity:1,paymentConfirmation:'partial',markPaid:true},workerCookie)).status,400);
-state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===partialBooking.id).issued,0);
-assert.equal((await post('issue',{id:partialBooking.id,quantity:1,paymentConfirmation:'partial'},workerCookie)).status,200);
-state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===partialBooking.id).payment,'PARTIALLY PAID');assert.equal(state.bookings.find(x=>x.id===partialBooking.id).issued,1);
-assert.equal((await post('issue',{id:partialBooking.id,quantity:1},workerCookie)).status,400);
-assert.equal((await post('update',{id:partialBooking.id,payment:'PARTIALLY PAID',remarks:'Balance due'},workerCookie)).status,200);
-assert.equal((await post('issue',{id:partialBooking.id,quantity:2,paymentConfirmation:'full'},workerCookie)).status,200);
-state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===partialBooking.id).payment,'PAID');
+assert.equal((await post('issue',{id:partialBooking.id,quantity:1},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===partialBooking.id).payment,'PARTIALLY PAID');assert.equal(state.bookings.find(x=>x.id===partialBooking.id).amountReceived,200);
+assert.equal((await post('issue',{id:partialBooking.id,quantity:2},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===partialBooking.id).payment,'PAID');assert.equal(state.bookings.find(x=>x.id===partialBooking.id).amountReceived,600);
 // Five booked, three issued at 200 each: exactly 600 received, two still unissued.
 assert.equal((await post('booking',{eventId,name:'Five booked three arrived',quantity:5,reference:'DIRECT',payment:'COLLECT AT VENUE'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();const exampleId=state.bookings.find(x=>x.name==='Five booked three arrived').id;
-assert.equal((await post('issue',{id:exampleId,quantity:3,paymentConfirmation:'partial',remarks:'2 no shows'},workerCookie)).status,200);
+assert.equal((await post('issue',{id:exampleId,quantity:3,remarks:'2 no shows'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();let example=state.bookings.find(x=>x.id===exampleId);assert.equal(example.amountReceived,600);assert.equal(example.payment,'PARTIALLY PAID');assert.equal(example.issued,3);assert.equal(example.quantity,5);
 assert.equal((await post('update',{id:exampleId,payment:'PARTIALLY PAID',remarks:'2 no shows'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,600);
-assert.equal((await post('issue',{id:exampleId,quantity:1,paymentConfirmation:'partial'},workerCookie)).status,200);
+assert.equal((await post('issue',{id:exampleId,quantity:1,markPaid:true},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,800);
-assert.equal((await post('issue',{id:exampleId,quantity:1,paymentConfirmation:'full'},workerCookie)).status,200);
+assert.equal((await post('issue',{id:exampleId,quantity:1},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,1000);assert.equal(state.bookings.find(x=>x.id===exampleId).payment,'PAID');
 // Reference archiving preserves history, rejects new bookings and supports corrections.
 assert.equal((await post('reference',{name:'SANKTH'},managerCookie)).status,200);
