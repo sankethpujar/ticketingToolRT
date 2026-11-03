@@ -94,6 +94,20 @@ assert.equal((await post('issue',{id:exampleId,quantity:1,markPaid:true},workerC
 state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,800);
 assert.equal((await post('issue',{id:exampleId,quantity:1},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,1000);assert.equal(state.bookings.find(x=>x.id===exampleId).payment,'PAID');
+// Booking quantity can change without inventing/removing received money or changing its reference.
+assert.equal((await post('booking',{eventId,name:'Editable quantity',quantity:5,reference:'DIRECT',payment:'COLLECT FROM REFERENCE'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();const editable=state.bookings.find(x=>x.name==='Editable quantity');
+assert.equal((await post('update',{id:editable.id,quantity:7,payment:'COLLECT FROM REFERENCE'},workerCookie)).status,200);
+assert.equal((await post('issue',{id:editable.id,quantity:3},workerCookie)).status,200);
+for(const quantity of [0,-1,2,3.5,10001])assert.equal((await post('update',{id:editable.id,quantity},workerCookie)).status,400);
+assert.equal((await post('update',{id:editable.id,quantity:3,payment:'PARTIALLY PAID'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();let changed=state.bookings.find(x=>x.id===editable.id);assert.equal(changed.quantity,3);assert.equal(changed.issued,3);assert.equal(changed.amountReceived,600);assert.equal(changed.payment,'PAID');assert.equal(changed.ref,editable.ref);
+assert.equal((await post('update',{id:editable.id,quantity:6,payment:'PAID'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();changed=state.bookings.find(x=>x.id===editable.id);assert.equal(changed.amountReceived,600);assert.equal(changed.payment,'PARTIALLY PAID');
+assert.equal((await post('booking',{eventId,name:'Paid quantity edit',quantity:5,reference:'DIRECT',payment:'PAID'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();const prepaid=state.bookings.find(x=>x.name==='Paid quantity edit');
+assert.equal((await post('update',{id:prepaid.id,quantity:3,payment:'PAID'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();assert.equal(globalThis.paymentUtilities.paymentReceived(state.bookings.find(x=>x.id===prepaid.id)),1000);
 // Delete one booking, preserve others and never reuse booking sequence numbers.
 assert.equal((await post('booking',{eventId,name:'Delete this booking',quantity:2,reference:'DIRECT',payment:'PAID'},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();const doomed=state.bookings.find(x=>x.name==='Delete this booking'),nextBeforeDelete=state.events.find(x=>x.id===eventId).next;
