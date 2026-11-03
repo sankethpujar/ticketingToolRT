@@ -69,6 +69,14 @@ state=await(await get(workerCookie)).json();const b=state.bookings[0];assert.equ
 assert.equal((await post('issue',{id:b.id,quantity:1},workerCookie)).status,400);
 assert.equal((await post('issue',{id:b.id,quantity:1,markPaid:true},workerCookie)).status,200);
 assert.equal((await post('issue',{id:b.id,quantity:3},workerCookie)).status,400);
+// Reference collection is a valid unpaid status for creation and updates.
+assert.equal((await post('booking',{eventId,name:'Reference payment',quantity:1,reference:'SANKETH',payment:'COLLECT FROM REFERENCE'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();const referenceBooking=state.bookings.find(x=>x.name==='Reference payment');assert.equal(referenceBooking.payment,'COLLECT FROM REFERENCE');
+assert.equal((await post('update',{id:referenceBooking.id,payment:'COLLECT AT VENUE'},workerCookie)).status,200);
+assert.equal((await post('update',{id:referenceBooking.id,payment:'COLLECT FROM REFERENCE',remarks:'Collect via reference'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===referenceBooking.id).payment,'COLLECT FROM REFERENCE');
+assert.equal((await post('issue',{id:referenceBooking.id,quantity:1},workerCookie)).status,400);
+assert.equal((await post('issue',{id:referenceBooking.id,quantity:1,markPaid:true},workerCookie)).status,200);
 // Reference archiving preserves history, rejects new bookings and supports corrections.
 assert.equal((await post('reference',{name:'SANKTH'},managerCookie)).status,200);
 assert.equal((await post('booking',{eventId,name:'Reference guest',quantity:1,reference:'SANKTH',payment:'PAID'},workerCookie)).status,200);

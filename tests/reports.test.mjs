@@ -7,3 +7,5 @@ const all=buildReport(data,'ALL');assert.equal(all.rows.length,2);assert.equal(a
 assert.equal(buildReport({...data,bookings:[]},'ALL').rows.length,0);
 fs.writeFileSync('/tmp/rangatantra-report-test.xlsx',reportXlsx(all.headers,all.rows));fs.writeFileSync('/tmp/rangatantra-event-report-test.xlsx',reportXlsx(event.headers,event.rows));fs.writeFileSync('/tmp/rangatantra-empty-report-test.xlsx',reportXlsx(event.headers,[]));
 console.log('Report columns, event isolation, overall rows, optional phones and empty reports passed.');
+
+const referenceReport=buildReport({...data,bookings:[{...data.bookings[0],payment:"COLLECT FROM REFERENCE"}]},"1");assert.equal(referenceReport.rows[0][3],"COLLECT FROM REFERENCE");
