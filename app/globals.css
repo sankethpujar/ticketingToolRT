@@ -170,3 +170,5 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 .sb-volume-levels button:hover::before{border-color:#7c233b}
 @media(max-width:700px){.sb-volume{padding:4px 0;gap:8px}.sb-volume-levels{min-width:0;height:34px}}
 
+
+.counter-ticket-total td{background:#fff0d4;border-top:2px solid #d4aa70;border-bottom:0;color:#76263b;padding-top:17px;padding-bottom:17px}.counter-ticket-total strong{font-size:14px;font-weight:700}.counter-ticket-total small{color:#986b4c}
