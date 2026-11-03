@@ -94,6 +94,16 @@ assert.equal((await post('issue',{id:exampleId,quantity:1,markPaid:true},workerC
 state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,800);
 assert.equal((await post('issue',{id:exampleId,quantity:1},workerCookie)).status,200);
 state=await(await get(workerCookie)).json();assert.equal(state.bookings.find(x=>x.id===exampleId).amountReceived,1000);assert.equal(state.bookings.find(x=>x.id===exampleId).payment,'PAID');
+// Delete one booking, preserve others and never reuse booking sequence numbers.
+assert.equal((await post('booking',{eventId,name:'Delete this booking',quantity:2,reference:'DIRECT',payment:'PAID'},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();const doomed=state.bookings.find(x=>x.name==='Delete this booking'),nextBeforeDelete=state.events.find(x=>x.id===eventId).next;
+assert.equal((await post('issue',{id:doomed.id,quantity:1},workerCookie)).status,200);
+assert.equal((await post('deleteBooking',{id:doomed.id,confirmRef:'wrong'},workerCookie)).status,400);
+state=await(await get(workerCookie)).json();assert.ok(state.bookings.some(x=>x.id===doomed.id));const survivorIds=state.bookings.filter(x=>x.id!==doomed.id).map(x=>x.id);
+assert.equal((await post('deleteBooking',{id:doomed.id,confirmRef:doomed.ref},workerCookie)).status,200);
+state=await(await get(workerCookie)).json();assert.ok(!state.bookings.some(x=>x.id===doomed.id));assert.deepEqual(state.bookings.map(x=>x.id),survivorIds);assert.equal(state.events.find(x=>x.id===eventId).next,nextBeforeDelete);
+assert.equal((await post('deleteBooking',{id:doomed.id,confirmRef:doomed.ref},workerCookie)).status,400);
+assert.equal((await post('issue',{id:doomed.id,quantity:1},workerCookie)).status,400);
 // Reference archiving preserves history, rejects new bookings and supports corrections.
 assert.equal((await post('reference',{name:'SANKTH'},managerCookie)).status,200);
 assert.equal((await post('booking',{eventId,name:'Reference guest',quantity:1,reference:'SANKTH',payment:'PAID'},workerCookie)).status,200);
