@@ -172,3 +172,10 @@ input:focus,select:focus{outline-color:#eab96b}.rolecard{background:#fff1d9;bord
 
 
 .counter-ticket-total td{background:#fff0d4;border-top:2px solid #d4aa70;border-bottom:0;color:#76263b;padding-top:17px;padding-bottom:17px}.counter-ticket-total strong{font-size:14px;font-weight:700}.counter-ticket-total small{color:#986b4c}
+
+.sb-cue-wrap .sb-edit-cue{right:34px}
+.sb-delete-cue{position:absolute;right:6px;top:7px;background:transparent;border:0;padding:4px;color:#a04c4b;min-height:22px;border-radius:4px}
+.sb-delete-cue:hover{background:#7c233b12}
+.sb-cue-wrap.active .sb-delete-cue{color:#ffd38e}
+.sb-cue-wrap .sb-cue-top{padding-right:44px}
+.sb-delete-cue:focus-visible,.sb-edit-cue:focus-visible{outline:2px solid #b97924;outline-offset:2px}
