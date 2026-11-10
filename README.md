@@ -36,3 +36,5 @@ There is no fixed app file-size limit for local audio; available browser storage
 Individual sound buttons can be deleted using the trash icon beside Edit. A confirmation names the sound. Deletion atomically removes the local cue and audio, stops that cue if playing, clears its selection and frees its slot; other cues, scenes, users and original computer files remain untouched.
 
 Each sound card includes a local playback-position slider with elapsed and remaining time. Drag or click the slider to seek; this does not select or start a cue. Paused cues retain a chosen start position until played. Stop rewinds; natural completion shows full progress. Seeking is disabled while fading or before duration metadata is available.
+
+Freeze board beside Scene # switches to a compact show view, hiding add-sound placeholders, file replacement controls and drop hints. Uncheck it to restore setup controls. File drops are ignored while frozen; playback and seeking remain available.
